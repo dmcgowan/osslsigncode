@@ -33,8 +33,8 @@ removal and extraction.
 
 Make sure dependent libraries are installed:
 
- * On Ubuntu-18.04:
-    sudo apt install libssl-dev autoconf build-essential automake libtool libcurl4-openssl-dev libengine-pkcs11-openssl1.1
+ * On Ubuntu-18.04 to 22.10:
+    sudo apt install libssl-dev autoconf build-essential automake libtool libcurl4-openssl-dev libengine-pkcs11-openssl
 
 Then download, build and install:
 
@@ -58,8 +58,7 @@ to do the signing with the Microsoft signtool.exe:
 
 To sign with osslsigncode you need the certificate file mentioned in the
 article above, in SPC or PEM format, and you will also need the private
-key which must be a key file in DER or PEM format, or if osslsigncode was
-compiled against OpenSSL 1.0.0 or later, in PVK format.
+key which must be a key file in DER, PEM format or PVK format.
 Alternatively this version of osslsigncode supports private keys stored
 on high security modules (HSM) through OpenSSL engines.
 
@@ -97,7 +96,7 @@ Since most HSMs don't support the OpenSSL engine interface directly
 but the more common standard PKCS#11, it's necessary to use a bridge
 called engine-pkcs11. It can be installed like:
 
-  sudo apt install libengine-pkcs11-openssl1.1
+  sudo apt install libengine-pkcs11-openssl
 
 Furthermore you can make use the pkcs11 library of the OpenSC project,
 which is compatible to many smart cards. It can be installed like:
@@ -108,10 +107,12 @@ To sign a PE file with private key stored on smart card and
 interactive prompt for the PIN code:
 
   osslsigncode sign -certs <cert-file> -askpass \
-    -pkcs11engine /usr/lib/x86_64-linux-gnu/engines-1.1/libpkcs11.so \
+    -pkcs11engine /usr/lib/x86_64-linux-gnu/engines-3/libpkcs11.so \
     -pkcs11module /usr/lib/x86_64-linux-gnu/opensc-pkcs11.so \
     -in yourapp.exe -out yourapp-signed.exe
 
+Use `/usr/lib/x86_64-linux-gnu/engines-1.1/libpkcs11.so` on a OpenSSL-1.1
+based distribution instead.
 The certificate has to be provided as a file. It is currently not
 supported to read the certificate from the smard card directly.
 Some smart card vendors provide their own PKCS#11 library, which can be
