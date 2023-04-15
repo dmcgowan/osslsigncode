@@ -31,8 +31,15 @@ removal and extraction.
 
 == INSTALLATION
 
-The usual way:
+Make sure dependent libraries are installed:
 
+ * On Ubuntu-18.04 to 22.10:
+    sudo apt install libssl-dev autoconf build-essential automake libtool libcurl4-openssl-dev libengine-pkcs11-openssl
+
+Then download, build and install:
+
+  git clone https://github.com/larskanis/osslsigncode
+  sh autogen.sh
   ./configure
   make
   make install
@@ -41,7 +48,8 @@ The usual way:
 == USAGE
 
 Before you can sign a file you need a Software Publishing
-Certificate (spc) and a corresponding private key.
+Certificate (spc) and a corresponding private key as file, on
+smart card or a HSM.
 
 This article provides a good starting point as to how
 to do the signing with the Microsoft signtool.exe:
@@ -50,8 +58,10 @@ to do the signing with the Microsoft signtool.exe:
 
 To sign with osslsigncode you need the certificate file mentioned in the
 article above, in SPC or PEM format, and you will also need the private
-key which must be a key file in DER or PEM format, or if osslsigncode was
-compiled against OpenSSL 1.0.0 or later, in PVK format.
+key which must be a key file in DER, PEM format or PVK format.
+Alternatively this version of osslsigncode supports private keys stored
+on high security modules (HSM) through OpenSSL engines.
+
 
 To sign a PE or MSI file you can now do:
 
@@ -79,6 +89,34 @@ You can use a certificate and key stored in a PKCS#12 container:
   osslsigncode sign -pkcs12 <pkcs12-file> -pass <pkcs12-password> \
         -n "Your Application" -i http://www.yourwebsite.com/ \
         -in yourapp.exe -out yourapp-signed.exe
+
+To use a key stored on a HSM or a smart card, you need a OpenSSL engine
+compatible shared library for operations on the private key.
+Since most HSMs don't support the OpenSSL engine interface directly
+but the more common standard PKCS#11, it's necessary to use a bridge
+called engine-pkcs11. It can be installed like:
+
+  sudo apt install libengine-pkcs11-openssl
+
+Furthermore you can make use the pkcs11 library of the OpenSC project,
+which is compatible to many smart cards. It can be installed like:
+
+  sudo apt install opensc
+
+To sign a PE file with private key stored on smart card and
+interactive prompt for the PIN code:
+
+  osslsigncode sign -certs <cert-file> -askpass \
+    -pkcs11engine /usr/lib/x86_64-linux-gnu/engines-3/libpkcs11.so \
+    -pkcs11module /usr/lib/x86_64-linux-gnu/opensc-pkcs11.so \
+    -in yourapp.exe -out yourapp-signed.exe
+
+Use `/usr/lib/x86_64-linux-gnu/engines-1.1/libpkcs11.so` on a OpenSSL-1.1
+based distribution instead.
+The certificate has to be provided as a file. It is currently not
+supported to read the certificate from the smard card directly.
+Some smart card vendors provide their own PKCS#11 library, which can be
+used alternatively instead of opensc-pkcs11.so.
 
 To sign a CAB file containing java class files:
 
